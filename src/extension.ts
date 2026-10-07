@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { getCatMessage } from './catMessage';
 import { getRemainingMilliseconds } from './time';
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -23,29 +24,19 @@ export function activate(context: vscode.ExtensionContext): void {
 
     const homeTime = configuration.get<unknown>('homeTime', '18:00');
 
-    statusBarItem.tooltip = 'Code faster. Your cat is waiting.';
-
     try {
       if (typeof homeTime !== 'string') {
         throw new Error('homeTime must be a string.');
       }
 
-      const remainingMilliseconds = getRemainingMilliseconds(
-        homeTime,
-        new Date(),
-      );
+      const now = new Date();
+      const remainingMilliseconds = getRemainingMilliseconds(homeTime, now);
+      const message = getCatMessage(catName, remainingMilliseconds, now);
 
-      const totalMinutes = Math.max(
-        0,
-        Math.ceil(remainingMilliseconds / 60_000),
-      );
-
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
-
-      statusBarItem.text = `🐱 ${catName} · Home in ${hours}h ${minutes}m`;
+      statusBarItem.text = message.text;
+      statusBarItem.tooltip = message.tooltip;
     } catch {
-      statusBarItem.text = '🐱 Check home time';
+      statusBarItem.text = '🐈 Check home time';
       statusBarItem.tooltip =
         'Set catWaiting.homeTime to a time in HH:mm format, such as 18:00.';
     }
